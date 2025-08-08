@@ -27,6 +27,7 @@
             height: 50px;
             margin-right: 15px;
             border-radius: 5px;
+            object-fit: cover;
         }
         .link-info {
             flex-grow: 1;
@@ -46,7 +47,7 @@
             top: 20px;
             right: 20px;
             z-index: 1000;
-            background-color: #212529; /* Cor preta */
+            background-color: #212529;
             color: #fff;
             border: none;
             border-radius: 8px;
@@ -56,8 +57,17 @@
         #add-link-button:hover {
             background-color: #000;
         }
-        #add-link-form-card {
-            display: none; /* Oculta o formulário por padrão */
+        .modal-backdrop.show {
+            backdrop-filter: blur(5px);
+        }
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -65,79 +75,155 @@
     <div class="container my-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>Meus Links Diários</h1>
-            <button id="add-link-button" class="btn btn-dark">
+            <button id="add-link-button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addLinkModal">
                 <i class="bi bi-plus-lg me-2"></i> Adicionar Link
             </button>
         </div>
         <hr>
 
-        <div id="add-link-form-card" class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Adicionar Novo Link</h5>
-                <form id="link-form">
-                    <div class="mb-3">
-                        <label for="link-nome" class="form-label">Nome do Link</label>
-                        <input type="text" class="form-control" id="link-nome" required>
+        <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="links-tab" data-bs-toggle="tab" data-bs-target="#links" type="button" role="tab" aria-controls="links" aria-selected="true">Links</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab" aria-controls="categories" aria-selected="false">Gerenciar Categorias</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="links" role="tabpanel" aria-labelledby="links-tab">
+                <div id="link-catalog">
                     </div>
-                    <div class="mb-3">
-                        <label for="link-url" class="form-label">URL</label>
-                        <input type="url" class="form-control" id="link-url" required>
+            </div>
+            <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Adicionar Nova Categoria</h5>
+                        <form id="category-form">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Nome da Categoria" id="category-name" required>
+                                <button class="btn btn-primary" type="submit">Adicionar</button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label for="link-categoria" class="form-label">Categoria</label>
-                        <input type="text" class="form-control" id="link-categoria" placeholder="Ex: Trabalho, Estudo" required>
+                </div>
+                <div id="category-list">
                     </div>
-                    <button type="submit" class="btn btn-primary">Salvar Link</button>
-                    <button type="button" class="btn btn-secondary" id="cancel-add">Cancelar</button>
-                </form>
             </div>
         </div>
+    </div>
 
-        <div id="link-catalog">
+    <div class="modal fade" id="addLinkModal" tabindex="-1" aria-labelledby="addLinkModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addLinkModalLabel">Adicionar Novo Link</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="link-form">
+                        <div class="mb-3">
+                            <label for="link-nome" class="form-label">Nome do Link</label>
+                            <input type="text" class="form-control" id="link-nome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="link-url" class="form-label">URL</label>
+                            <input type="url" class="form-control" id="link-url" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="link-categoria" class="form-label">Categoria</label>
+                            <select class="form-select" id="link-categoria" required>
+                                </select>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Salvar Link</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const addLinkButton = document.getElementById('add-link-button');
-        const addLinkFormCard = document.getElementById('add-link-form-card');
         const linkForm = document.getElementById('link-form');
-        const cancelAddButton = document.getElementById('cancel-add');
+        const categoryForm = document.getElementById('category-form');
         const linkCatalog = document.getElementById('link-catalog');
+        const categoryList = document.getElementById('category-list');
+        const linkCategorySelect = document.getElementById('link-categoria');
+        const addLinkModal = new bootstrap.Modal(document.getElementById('addLinkModal'));
 
         let links = JSON.parse(localStorage.getItem('links')) || [];
+        let categories = JSON.parse(localStorage.getItem('categories')) || ['Trabalho', 'Estudo', 'Social'];
+
+        function getDomain(url) {
+            try {
+                const hostname = new URL(url).hostname;
+                const parts = hostname.split('.');
+                // Remove 'www' se existir
+                if (parts[0] === 'www') {
+                    parts.shift();
+                }
+                return parts.join('.');
+            } catch (e) {
+                return '';
+            }
+        }
 
         function renderizarLinks() {
             linkCatalog.innerHTML = '';
-            const categorias = {};
+            const linksByCategories = {};
 
+            categories.forEach(cat => linksByCategories[cat] = []);
             links.forEach(link => {
-                if (!categorias[link.categoria]) {
-                    categorias[link.categoria] = [];
+                if (linksByCategories[link.categoria]) {
+                    linksByCategories[link.categoria].push(link);
                 }
-                categorias[link.categoria].push(link);
             });
 
-            for (const categoria in categorias) {
-                const categoriaHtml = `
-                    <h3 class="mt-4">${categoria}</h3>
-                    ${categorias[categoria].map(link => `
-                        <div class="link-item">
-                            <img src="https://www.google.com/s2/favicons?domain=${link.url}" alt="Favicon">
-                            <div class="link-info">
-                                <h5>${link.nome}</h5>
-                                <p>${link.url}</p>
+            for (const categoria in linksByCategories) {
+                if (linksByCategories[categoria].length > 0) {
+                    const categoriaHtml = `
+                        <h3 class="mt-4">${categoria}</h3>
+                        ${linksByCategories[categoria].map(link => `
+                            <div class="link-item">
+                                <img src="https://logo.clearbit.com/${getDomain(link.url)}" onerror="this.src='https://via.placeholder.com/50'" alt="Favicon">
+                                <div class="link-info">
+                                    <h5>${link.nome}</h5>
+                                    <p>${link.url}</p>
+                                </div>
+                                <a href="${link.url}" class="btn btn-primary me-2" target="_blank">Visitar</a>
+                                <button class="btn btn-danger" onclick="removerLink('${link.nome}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </div>
-                            <a href="${link.url}" class="btn btn-primary me-2" target="_blank">Visitar</a>
-                            <button class="btn btn-danger" onclick="removerLink('${link.nome}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    `).join('')}
-                `;
-                linkCatalog.innerHTML += categoriaHtml;
+                        `).join('')}
+                    `;
+                    linkCatalog.innerHTML += categoriaHtml;
+                }
             }
+        }
+
+        function renderizarCategorias() {
+            categoryList.innerHTML = '';
+            linkCategorySelect.innerHTML = '';
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                linkCategorySelect.appendChild(option);
+
+                const categoryItem = `
+                    <div class="category-item">
+                        <span>${cat}</span>
+                        <button class="btn btn-sm btn-danger" onclick="removerCategoria('${cat}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                `;
+                categoryList.innerHTML += categoryItem;
+            });
         }
 
         function adicionarLink(e) {
@@ -150,7 +236,7 @@
             localStorage.setItem('links', JSON.stringify(links));
             renderizarLinks();
             linkForm.reset();
-            addLinkFormCard.style.display = 'none'; // Oculta o formulário após adicionar
+            addLinkModal.hide(); // Oculta o modal
         }
 
         function removerLink(nomeLink) {
@@ -159,16 +245,33 @@
             renderizarLinks();
         }
 
-        addLinkButton.addEventListener('click', () => {
-            addLinkFormCard.style.display = 'block'; // Exibe o formulário
-        });
+        function adicionarCategoria(e) {
+            e.preventDefault();
+            const categoryName = document.getElementById('category-name').value;
+            if (categoryName && !categories.includes(categoryName)) {
+                categories.push(categoryName);
+                localStorage.setItem('categories', JSON.stringify(categories));
+                renderizarCategorias();
+                document.getElementById('category-form').reset();
+            }
+        }
 
-        cancelAddButton.addEventListener('click', () => {
-            addLinkFormCard.style.display = 'none'; // Oculta o formulário
-        });
+        function removerCategoria(catToRemove) {
+            links = links.filter(link => link.categoria !== catToRemove);
+            categories = categories.filter(cat => cat !== catToRemove);
+            localStorage.setItem('links', JSON.stringify(links));
+            localStorage.setItem('categories', JSON.stringify(categories));
+            renderizarLinks();
+            renderizarCategorias();
+        }
 
         linkForm.addEventListener('submit', adicionarLink);
-        document.addEventListener('DOMContentLoaded', renderizarLinks);
+        categoryForm.addEventListener('submit', adicionarCategoria);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderizarCategorias();
+            renderizarLinks();
+        });
     </script>
 </body>
 </html>
