@@ -241,6 +241,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // LINHA PARA CORRIGIR O ERRO - REMOVA DEPOIS DE ATUALIZAR A PÁGINA UMA VEZ
+        localStorage.removeItem('categories');
+
         const linkForm = document.getElementById('link-form');
         const categoryForm = document.getElementById('category-form');
         const linkCatalog = document.getElementById('link-catalog');
@@ -331,7 +334,7 @@
 
         function filtrarLinks(categoryName) {
             renderizarLinks(categoryName);
-            myTab.show(); // Mudar para a aba de Links
+            myTab.show();
         }
 
         function adicionarLink(e) {
