@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Hub de Links Dinâmico</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 960px;
+        }
+        .card {
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container my-5">
+        <h1 class="text-center mb-4">Meus Links Diários</h1>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Adicionar Novo Link</h5>
+                <form id="link-form">
+                    <div class="mb-3">
+                        <label for="link-nome" class="form-label">Nome do Link</label>
+                        <input type="text" class="form-control" id="link-nome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="link-url" class="form-label">URL</label>
+                        <input type="url" class="form-control" id="link-url" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="link-categoria" class="form-label">Categoria</label>
+                        <input type="text" class="form-control" id="link-categoria" placeholder="Ex: Trabalho, Estudo" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Adicionar Link</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="link-catalog">
+            </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const linkForm = document.getElementById('link-form');
+        const linkCatalog = document.getElementById('link-catalog');
+
+        let links = JSON.parse(localStorage.getItem('links')) || [];
+
+        function renderizarLinks() {
+            linkCatalog.innerHTML = ''; // Limpa o catálogo
+            const categorias = {};
+
+            links.forEach(link => {
+                if (!categorias[link.categoria]) {
+                    categorias[link.categoria] = [];
+                }
+                categorias[link.categoria].push(link);
+            });
+
+            for (const categoria in categorias) {
+                const categoriaHtml = `
+                    <h3 class="mt-4">${categoria}</h3>
+                    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+                        ${categorias[categoria].map(link => `
+                            <div class="col">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${link.nome}</h5>
+                                        <a href="${link.url}" class="btn btn-success" target="_blank">Ir para o Link</a>
+                                        <button class="btn btn-danger btn-sm float-end" onclick="removerLink('${link.nome}')">Remover</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                linkCatalog.innerHTML += categoriaHtml;
+            }
+        }
+
+        function adicionarLink(e) {
+            e.preventDefault();
+            const nome = document.getElementById('link-nome').value;
+            const url = document.getElementById('link-url').value;
+            const categoria = document.getElementById('link-categoria').value;
+
+            links.push({ nome, url, categoria });
+            localStorage.setItem('links', JSON.stringify(links));
+            renderizarLinks();
+            linkForm.reset();
+        }
+
+        function removerLink(nomeLink) {
+            links = links.filter(link => link.nome !== nomeLink);
+            localStorage.setItem('links', JSON.stringify(links));
+            renderizarLinks();
+        }
+
+        linkForm.addEventListener('submit', adicionarLink);
+        document.addEventListener('DOMContentLoaded', renderizarLinks);
+    </script>
+</body>
+</html>
