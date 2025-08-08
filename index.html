@@ -14,7 +14,7 @@
         body {
             background-color: #d8d3d2ff;
             font-family: 'Comfortaa', sans-serif;
-            font-size: 1.1rem; /* Tamanho da fonte padrão aumentado */
+            font-size: 1.1rem;
         }
         #app-container {
             display: flex;
@@ -96,6 +96,20 @@
             border-radius: 5px;
             margin-bottom: 8px;
         }
+        .filter-item {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 10px;
+            background-color: transparent;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+        .filter-item:hover {
+            background-color: #e9ecef;
+        }
         .link-item {
             display: flex;
             align-items: center;
@@ -150,7 +164,10 @@
                     <button class="nav-link active" id="links-tab" data-bs-toggle="tab" data-bs-target="#links" type="button" role="tab" aria-controls="links" aria-selected="true">Links</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab" aria-controls="categories" aria-selected="false">Gerenciar Categorias</button>
+                    <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab" aria-controls="categories" aria-selected="false">Categoria</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="filters-tab" data-bs-toggle="tab" data-bs-target="#filters" type="button" role="tab" aria-controls="filters" aria-selected="false">Filtros</button>
                 </li>
             </ul>
         </div>
@@ -179,6 +196,11 @@
                         </div>
                     </div>
                     <div id="category-list">
+                        </div>
+                </div>
+                <div class="tab-pane fade" id="filters" role="tabpanel" aria-labelledby="filters-tab">
+                    <h5 class="card-title mb-3">Filtrar por Categoria</h5>
+                    <div id="filter-list">
                         </div>
                 </div>
             </div>
@@ -223,15 +245,13 @@
         const categoryForm = document.getElementById('category-form');
         const linkCatalog = document.getElementById('link-catalog');
         const categoryList = document.getElementById('category-list');
+        const filterList = document.getElementById('filter-list');
         const linkCategorySelect = document.getElementById('link-categoria');
+        const myTab = new bootstrap.Tab(document.getElementById('links-tab'));
         const addLinkModal = new bootstrap.Modal(document.getElementById('addLinkModal'));
 
         let links = JSON.parse(localStorage.getItem('links')) || [];
-        let categories = JSON.parse(localStorage.getItem('categories')) || [
-            { name: 'Trabalho', color: '#007bff' },
-            { name: 'Estudo', color: '#28a745' },
-            { name: 'Social', color: '#ffc107' }
-        ];
+        let categories = JSON.parse(localStorage.getItem('categories')) || [];
 
         function getDomain(url) {
             try {
@@ -248,49 +268,43 @@
 
         function getCategoryColor(categoryName) {
             const category = categories.find(cat => cat.name === categoryName);
-            return category ? category.color : '#6c757d'; // Cor padrão
+            return category ? category.color : '#6c757d';
         }
 
-        function renderizarLinks() {
+        function renderizarLinks(filterCategory = null) {
             linkCatalog.innerHTML = '';
-            const linksByCategories = {};
+            const filteredLinks = filterCategory ? links.filter(link => link.categoria === filterCategory) : links;
 
-            categories.forEach(cat => linksByCategories[cat.name] = []);
-            links.forEach(link => {
-                if (linksByCategories[link.categoria]) {
-                    linksByCategories[link.categoria].push(link);
-                }
-            });
-
-            for (const categoria in linksByCategories) {
-                if (linksByCategories[categoria].length > 0) {
-                    const categoriaHtml = `
-                        <h3 class="mt-4">
-                            <span class="category-badge" style="background-color: ${getCategoryColor(categoria)};"></span>
-                            ${categoria}
-                        </h3>
-                        ${linksByCategories[categoria].map(link => `
-                            <div class="link-item">
-                                <img src="https://logo.clearbit.com/${getDomain(link.url)}" onerror="this.src='https://via.placeholder.com/50'" alt="Favicon">
-                                <div class="link-info">
-                                    <h5>${link.nome}</h5>
-                                    <p>${link.url}</p>
-                                </div>
-                                <a href="${link.url}" class="btn btn-primary me-2" target="_blank">Visitar</a>
-                                <button class="btn btn-danger" onclick="removerLink('${link.nome}')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        `).join('')}
-                    `;
-                    linkCatalog.innerHTML += categoriaHtml;
-                }
+            if (filteredLinks.length > 0) {
+                const linksHtml = filteredLinks.map(link => `
+                    <div class="link-item">
+                        <img src="https://logo.clearbit.com/${getDomain(link.url)}" onerror="this.src='https://via.placeholder.com/50'" alt="Favicon">
+                        <div class="link-info">
+                            <h5>${link.nome}</h5>
+                            <p>${link.url}</p>
+                        </div>
+                        <span class="category-badge me-2" style="background-color: ${getCategoryColor(link.categoria)};"></span>
+                        <a href="${link.url}" class="btn btn-primary me-2" target="_blank">Visitar</a>
+                        <button class="btn btn-danger" onclick="removerLink('${link.nome}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+                linkCatalog.innerHTML += linksHtml;
+            } else {
+                linkCatalog.innerHTML = '<p class="text-center text-muted mt-5">Nenhum link encontrado para esta categoria.</p>';
             }
         }
 
         function renderizarCategorias() {
             categoryList.innerHTML = '';
+            filterList.innerHTML = `<button class="filter-item" onclick="filtrarLinks(null)">Todos</button>`;
             linkCategorySelect.innerHTML = '';
+
+            if (categories.length === 0) {
+                linkCategorySelect.innerHTML = '<option disabled selected>Adicione uma categoria</option>';
+            }
+
             categories.forEach(cat => {
                 const option = document.createElement('option');
                 option.value = cat.name;
@@ -309,7 +323,15 @@
                     </div>
                 `;
                 categoryList.innerHTML += categoryItem;
+                
+                const filterButton = `<button class="filter-item" onclick="filtrarLinks('${cat.name}')"><span class="category-badge" style="background-color: ${cat.color};"></span>${cat.name}</button>`;
+                filterList.innerHTML += filterButton;
             });
+        }
+
+        function filtrarLinks(categoryName) {
+            renderizarLinks(categoryName);
+            myTab.show(); // Mudar para a aba de Links
         }
 
         function adicionarLink(e) {
