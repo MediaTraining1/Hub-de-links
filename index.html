@@ -4,11 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Hub de Links Dinâmico</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body {
             background-color: #d8d3d2ff;
+            font-family: 'Comfortaa', sans-serif;
+            font-size: 1.1rem; /* Tamanho da fonte padrão aumentado */
         }
         #app-container {
             display: flex;
@@ -19,35 +25,76 @@
             background-color: #f8f9fa;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #logo-container {
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        #logo-container img {
+            max-width: 100px;
+            height: auto;
+        }
+        #sidebar-text {
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #555;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #sidebar .nav-tabs {
+            border-bottom: none;
+            flex-direction: column;
+            width: 100%;
+        }
+        #sidebar .nav-link {
+            border: none;
+            background-color: transparent;
+            text-align: left;
+            margin-bottom: 5px;
+            padding-left: 10px;
+            color: #495057;
+        }
+        #sidebar .nav-link.active {
+            background-color: #e9ecef;
+            border-radius: 5px;
+            font-weight: bold;
         }
         #main-content {
             flex-grow: 1;
             padding: 20px;
         }
-        #logo-container {
-            margin-bottom: 20px;
-            text-align: center;
+        #add-link-button-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
         }
-        #logo-container img {
-            max-width: 150px;
-            height: auto;
-        }
-        .nav-tabs {
-            border-bottom: none;
-            flex-direction: column;
-        }
-        .nav-link {
+        #add-link-button {
+            background-color: #212529;
+            color: #fff;
             border: none;
-            background-color: transparent;
-            text-align: left;
-            margin-bottom: 5px;
-            padding-left: 0;
-            color: #495057;
+            border-radius: 8px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .nav-link.active {
+        #add-link-button:hover {
+            background-color: #000;
+        }
+        .modal-backdrop.show {
+            backdrop-filter: blur(5px);
+        }
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
             background-color: #e9ecef;
             border-radius: 5px;
-            font-weight: bold;
+            margin-bottom: 8px;
         }
         .link-item {
             display: flex;
@@ -78,32 +125,16 @@
             color: #6c757d;
             font-size: 0.9rem;
         }
-        #add-link-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background-color: #212529;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        .category-badge {
+            width: 15px;
+            height: 15px;
+            border-radius: 4px;
+            margin-right: 8px;
+            display: inline-block;
         }
-        #add-link-button:hover {
-            background-color: #000;
-        }
-        .modal-backdrop.show {
-            backdrop-filter: blur(5px);
-        }
-        .category-item {
+        .category-item-info {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 10px;
-            background-color: #e9ecef;
-            border-radius: 5px;
-            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -113,6 +144,7 @@
             <div id="logo-container">
                 <img src="Artboard 1 19.png" alt="Logo">
             </div>
+            <div id="sidebar-text">MEDIA TRAINING</div>
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="links-tab" data-bs-toggle="tab" data-bs-target="#links" type="button" role="tab" aria-controls="links" aria-selected="true">Links</button>
@@ -123,10 +155,12 @@
             </ul>
         </div>
         <div id="main-content">
-            <button id="add-link-button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addLinkModal">
-                <i class="bi bi-plus-lg me-2"></i> Adicionar Link
-            </button>
-            <div class="tab-content mt-4" id="myTabContent">
+            <div id="add-link-button-container">
+                <button id="add-link-button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addLinkModal">
+                    <i class="bi bi-plus-lg me-2"></i> Adicionar Link
+                </button>
+            </div>
+            <div class="tab-content mt-5" id="myTabContent">
                 <div class="tab-pane fade show active" id="links" role="tabpanel" aria-labelledby="links-tab">
                     <div id="link-catalog">
                         </div>
@@ -138,6 +172,7 @@
                             <form id="category-form">
                                 <div class="input-group">
                                     <input type="text" class="form-control" placeholder="Nome da Categoria" id="category-name" required>
+                                    <input type="color" class="form-control form-control-color" id="category-color" value="#007bff">
                                     <button class="btn btn-primary" type="submit">Adicionar</button>
                                 </div>
                             </form>
@@ -192,14 +227,18 @@
         const addLinkModal = new bootstrap.Modal(document.getElementById('addLinkModal'));
 
         let links = JSON.parse(localStorage.getItem('links')) || [];
-        let categories = JSON.parse(localStorage.getItem('categories')) || ['Trabalho', 'Estudo', 'Social'];
+        let categories = JSON.parse(localStorage.getItem('categories')) || [
+            { name: 'Trabalho', color: '#007bff' },
+            { name: 'Estudo', color: '#28a745' },
+            { name: 'Social', color: '#ffc107' }
+        ];
 
         function getDomain(url) {
             try {
                 const hostname = new URL(url).hostname;
                 const parts = hostname.split('.');
-                if (parts[0] === 'www') {
-                    parts.shift();
+                if (parts.length > 1 && parts.includes('www')) {
+                    parts.splice(parts.indexOf('www'), 1);
                 }
                 return parts.join('.');
             } catch (e) {
@@ -207,11 +246,16 @@
             }
         }
 
+        function getCategoryColor(categoryName) {
+            const category = categories.find(cat => cat.name === categoryName);
+            return category ? category.color : '#6c757d'; // Cor padrão
+        }
+
         function renderizarLinks() {
             linkCatalog.innerHTML = '';
             const linksByCategories = {};
 
-            categories.forEach(cat => linksByCategories[cat] = []);
+            categories.forEach(cat => linksByCategories[cat.name] = []);
             links.forEach(link => {
                 if (linksByCategories[link.categoria]) {
                     linksByCategories[link.categoria].push(link);
@@ -221,7 +265,10 @@
             for (const categoria in linksByCategories) {
                 if (linksByCategories[categoria].length > 0) {
                     const categoriaHtml = `
-                        <h3 class="mt-4">${categoria}</h3>
+                        <h3 class="mt-4">
+                            <span class="category-badge" style="background-color: ${getCategoryColor(categoria)};"></span>
+                            ${categoria}
+                        </h3>
                         ${linksByCategories[categoria].map(link => `
                             <div class="link-item">
                                 <img src="https://logo.clearbit.com/${getDomain(link.url)}" onerror="this.src='https://via.placeholder.com/50'" alt="Favicon">
@@ -246,14 +293,17 @@
             linkCategorySelect.innerHTML = '';
             categories.forEach(cat => {
                 const option = document.createElement('option');
-                option.value = cat;
-                option.textContent = cat;
+                option.value = cat.name;
+                option.textContent = cat.name;
                 linkCategorySelect.appendChild(option);
 
                 const categoryItem = `
                     <div class="category-item">
-                        <span>${cat}</span>
-                        <button class="btn btn-sm btn-danger" onclick="removerCategoria('${cat}')">
+                        <div class="category-item-info">
+                            <span class="category-badge" style="background-color: ${cat.color};"></span>
+                            <span>${cat.name}</span>
+                        </div>
+                        <button class="btn btn-sm btn-danger" onclick="removerCategoria('${cat.name}')">
                             <i class="bi bi-trash"></i>
                         </button>
                     </div>
@@ -284,8 +334,10 @@
         function adicionarCategoria(e) {
             e.preventDefault();
             const categoryName = document.getElementById('category-name').value;
-            if (categoryName && !categories.includes(categoryName)) {
-                categories.push(categoryName);
+            const categoryColor = document.getElementById('category-color').value;
+
+            if (categoryName && !categories.find(cat => cat.name === categoryName)) {
+                categories.push({ name: categoryName, color: categoryColor });
                 localStorage.setItem('categories', JSON.stringify(categories));
                 renderizarCategorias();
                 document.getElementById('category-form').reset();
@@ -294,7 +346,7 @@
 
         function removerCategoria(catToRemove) {
             links = links.filter(link => link.categoria !== catToRemove);
-            categories = categories.filter(cat => cat !== catToRemove);
+            categories = categories.filter(cat => cat.name !== catToRemove);
             localStorage.setItem('links', JSON.stringify(links));
             localStorage.setItem('categories', JSON.stringify(categories));
             renderizarLinks();
