@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Hub de Links Dinâmico</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body {
             background-color: #f8f9fa;
@@ -12,17 +13,36 @@
         .container {
             max-width: 960px;
         }
-        .card {
-            transition: transform 0.2s;
+        .link-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .card:hover {
-            transform: scale(1.05);
+        .link-item img {
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+        }
+        .link-info {
+            flex-grow: 1;
+        }
+        .link-info h5 {
+            margin: 0;
+        }
+        .link-info p {
+            margin: 0;
+            color: #6c757d;
         }
     </style>
 </head>
 <body>
     <div class="container my-5">
-        <h1 class="text-center mb-4">Meus Links Diários</h1>
+        <h1 class="mb-4">Meus Links Diários</h1>
+        <hr>
 
         <div class="card mb-4">
             <div class="card-body">
@@ -59,7 +79,7 @@
         let links = JSON.parse(localStorage.getItem('links')) || [];
 
         function renderizarLinks() {
-            linkCatalog.innerHTML = ''; // Limpa o catálogo
+            linkCatalog.innerHTML = '';
             const categorias = {};
 
             links.forEach(link => {
@@ -72,19 +92,19 @@
             for (const categoria in categorias) {
                 const categoriaHtml = `
                     <h3 class="mt-4">${categoria}</h3>
-                    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
-                        ${categorias[categoria].map(link => `
-                            <div class="col">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <h5 class="card-title">${link.nome}</h5>
-                                        <a href="${link.url}" class="btn btn-success" target="_blank">Ir para o Link</a>
-                                        <button class="btn btn-danger btn-sm float-end" onclick="removerLink('${link.nome}')">Remover</button>
-                                    </div>
-                                </div>
+                    ${categorias[categoria].map(link => `
+                        <div class="link-item">
+                            <img src="https://www.google.com/s2/favicons?domain=${link.url}" alt="Favicon">
+                            <div class="link-info">
+                                <h5>${link.nome}</h5>
+                                <p>${link.url}</p>
                             </div>
-                        `).join('')}
-                    </div>
+                            <a href="${link.url}" class="btn btn-primary me-2" target="_blank">Visitar</a>
+                            <button class="btn btn-danger" onclick="removerLink('${link.nome}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    `).join('')}
                 `;
                 linkCatalog.innerHTML += categoriaHtml;
             }
