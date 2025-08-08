@@ -16,35 +16,62 @@
         .link-item {
             display: flex;
             align-items: center;
-            padding: 10px;
-            background-color: #fff;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .link-item img {
             width: 50px;
             height: 50px;
             margin-right: 15px;
+            border-radius: 5px;
         }
         .link-info {
             flex-grow: 1;
         }
         .link-info h5 {
             margin: 0;
+            font-size: 1.1rem;
+            color: #343a40;
         }
         .link-info p {
             margin: 0;
             color: #6c757d;
+            font-size: 0.9rem;
+        }
+        #add-link-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: #212529; /* Cor preta */
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #add-link-button:hover {
+            background-color: #000;
+        }
+        #add-link-form-card {
+            display: none; /* Oculta o formulário por padrão */
         }
     </style>
 </head>
 <body>
     <div class="container my-5">
-        <h1 class="mb-4">Meus Links Diários</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Meus Links Diários</h1>
+            <button id="add-link-button" class="btn btn-dark">
+                <i class="bi bi-plus-lg me-2"></i> Adicionar Link
+            </button>
+        </div>
         <hr>
 
-        <div class="card mb-4">
+        <div id="add-link-form-card" class="card mb-4">
             <div class="card-body">
                 <h5 class="card-title">Adicionar Novo Link</h5>
                 <form id="link-form">
@@ -60,7 +87,8 @@
                         <label for="link-categoria" class="form-label">Categoria</label>
                         <input type="text" class="form-control" id="link-categoria" placeholder="Ex: Trabalho, Estudo" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Adicionar Link</button>
+                    <button type="submit" class="btn btn-primary">Salvar Link</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-add">Cancelar</button>
                 </form>
             </div>
         </div>
@@ -71,9 +99,11 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
+        const addLinkButton = document.getElementById('add-link-button');
+        const addLinkFormCard = document.getElementById('add-link-form-card');
         const linkForm = document.getElementById('link-form');
+        const cancelAddButton = document.getElementById('cancel-add');
         const linkCatalog = document.getElementById('link-catalog');
 
         let links = JSON.parse(localStorage.getItem('links')) || [];
@@ -120,6 +150,7 @@
             localStorage.setItem('links', JSON.stringify(links));
             renderizarLinks();
             linkForm.reset();
+            addLinkFormCard.style.display = 'none'; // Oculta o formulário após adicionar
         }
 
         function removerLink(nomeLink) {
@@ -127,6 +158,14 @@
             localStorage.setItem('links', JSON.stringify(links));
             renderizarLinks();
         }
+
+        addLinkButton.addEventListener('click', () => {
+            addLinkFormCard.style.display = 'block'; // Exibe o formulário
+        });
+
+        cancelAddButton.addEventListener('click', () => {
+            addLinkFormCard.style.display = 'none'; // Oculta o formulário
+        });
 
         linkForm.addEventListener('submit', adicionarLink);
         document.addEventListener('DOMContentLoaded', renderizarLinks);
